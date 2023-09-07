@@ -11,7 +11,7 @@ using DG.Tweening;
 public class SensingController : MonoBehaviour
 {
     public GameObject indexJoint2;
-    public GameObject handRotation;
+    public GameObject hand;
 
     public SerialPort sp;
 
@@ -33,6 +33,16 @@ public class SensingController : MonoBehaviour
                     sp.ReadLine(); // drop a packet (MCU is too fast)
                     string[] data = sp.ReadLine().Split(' ');
 
+                    float touchVal = float.Parse(data[0]);
+                    bool isTouching = (touchVal > 5.0);
+
+                    // use touch to change color:
+                    SkinnedMeshRenderer handSkin = hand.transform.GetComponentInChildren<SkinnedMeshRenderer>();
+                    if (isTouching)
+                        handSkin.material.SetColor( "_BaseColor", Color.red);
+                    else
+                        handSkin.material.SetColor( "_BaseColor", Color.black);
+
                     // Bend index finger using the accelerometer
                     float bending = float.Parse(data[5]); // temporary test: accelerometer y
                     float index_angle = map(bending, -20,-70, -10,-70);
@@ -42,7 +52,7 @@ public class SensingController : MonoBehaviour
                     float heading = (float)Math.Atan2(double.Parse(data[2]), double.Parse(data[1]));
                     heading = (heading * 180.0f) / (float)Math.PI; // => [-180 ; +180]
                     float hand_angle = map(heading, 0,50, 130,190);
-                    handRotation.transform.DOLocalRotate( new Vector3(0, hand_angle, 0), 0.8f);
+                    hand.transform.DOLocalRotate( new Vector3(0, hand_angle, 0), 0.8f);
 
                     //print(bending + "\t  " + heading);
                 }
